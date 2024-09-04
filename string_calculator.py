@@ -7,8 +7,12 @@ def add(numbers: str) -> int:
         delimiter, numbers = re.match("//(.)\n(.*)", numbers).groups()
         numbers = numbers.replace(delimiter, ',')
     numbers = numbers.replace('\n', ',')
-    nums = map(int, numbers.split(','))
+    nums = list(map(int, numbers.split(',')))
+    negatives = [n for n in nums if n < 0]
+    if negatives:
+        raise ValueError(f"negative numbers not allowed: {','.join(map(str, negatives))}")
     return sum(nums)
+
 
 
 
@@ -28,3 +32,9 @@ def test_newline_as_delimiter():
 
 def test_custom_delimiter():
     assert add("//;\n1;2") == 3
+
+import pytest
+
+def test_negative_numbers_throw_exception():
+    with pytest.raises(ValueError, match="negative numbers not allowed: -1"):
+        add("1,-1")
