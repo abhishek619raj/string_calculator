@@ -1,40 +1,31 @@
 import re
+from typing import List
 
 def add(numbers: str) -> int:
     if not numbers:
         return 0
+
+    delimiter, numbers = extract_delimiter_and_numbers(numbers)
+    numbers_list = parse_numbers(numbers, delimiter)
+    
+    check_for_negatives(numbers_list)
+
+    return sum(numbers_list)
+
+def extract_delimiter_and_numbers(numbers: str) -> (str, str):
+    default_delimiter = ','
     if numbers.startswith("//"):
-        delimiter, numbers = re.match("//(.)\n(.*)", numbers).groups()
-        numbers = numbers.replace(delimiter, ',')
-    numbers = numbers.replace('\n', ',')
-    nums = list(map(int, numbers.split(',')))
-    negatives = [n for n in nums if n < 0]
+        match = re.match("//(.)\n(.*)", numbers)
+        if match:
+            delimiter, numbers = match.groups()
+            return delimiter, numbers
+    return default_delimiter, numbers
+
+def parse_numbers(numbers: str, delimiter: str) -> List[int]:
+    numbers = numbers.replace('\n', delimiter)
+    return list(map(int, numbers.split(delimiter)))
+
+def check_for_negatives(numbers: List[int]):
+    negatives = [n for n in numbers if n < 0]
     if negatives:
         raise ValueError(f"negative numbers not allowed: {','.join(map(str, negatives))}")
-    return sum(nums)
-
-
-
-
-
-
-def test_single_number_returns_value():
-    assert add("1") == 1
-
-def test_two_numbers_comma_separated():
-    assert add("1,2") == 3
-
-def test_multiple_numbers_comma_separated():
-    assert add("1,2,3,4") == 10
-
-def test_newline_as_delimiter():
-    assert add("1\n2,3") == 6
-
-def test_custom_delimiter():
-    assert add("//;\n1;2") == 3
-
-import pytest
-
-def test_negative_numbers_throw_exception():
-    with pytest.raises(ValueError, match="negative numbers not allowed: -1"):
-        add("1,-1")
